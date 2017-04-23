@@ -101,7 +101,8 @@ def read_options_from_html(html):
 		except:
 			pass
 
-	options.update(prepare_header_footer(soup))
+	if not options.get("background_pdf"): 
+		options.update(prepare_header_footer(soup))
 
 	toggle_visible_pdf(soup)
 
