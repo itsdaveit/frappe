@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import pdfkit, os, frappe
+import pdfkit, os, frappe, pypdftk
 from frappe.utils import scrub_urls
 from frappe import _
 from bs4 import BeautifulSoup
@@ -12,9 +12,17 @@ def get_pdf(html, options=None, output = None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
+	background_pdf = options.pop('background_pdf', None)
 
 	try:
 		pdfkit.from_string(html, fname, options=options or {})
+		
+		if background_pdf:
+			background_pdf = background_pdf[0]
+			pypdftkFname = fname + '_pypdftk'
+			pypdftk.add_background(fname, background_pdf, pypdftkFname )
+			fname = pypdftkFname
+		
 		if output:
 			append_pdf(PdfFileReader(file(fname,"rb")),output)
 		else:
@@ -85,7 +93,7 @@ def read_options_from_html(html):
 	soup = BeautifulSoup(html, "html5lib")
 
 	# extract pdfkit options from html
-	for html_id in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size"):
+	for html_id in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size", "background_pdf"):
 		try:
 			tag = soup.find(id=html_id)
 			if tag and tag.contents:
