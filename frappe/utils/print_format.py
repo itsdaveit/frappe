@@ -344,7 +344,11 @@ def print_by_server(
 		)
 		if not file_path:
 			file_path = os.path.join("/", "tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
-		output.write(open(file_path, "wb"))
+		with open(file_path, "wb") as f:
+			if isinstance(output, bytes):
+				f.write(output)
+			else:
+				output.write(f)
 		conn.printFile(print_settings.printer_name, file_path, name, {})
 	except OSError as e:
 		if (
